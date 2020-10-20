@@ -141,10 +141,10 @@ function getUserInfomation(id) {
         url: `https://ioihw20.duck-ac.cn/user/profile/ioi2021_${id}`,
     }).then((res) => {
         let info = res.match(/<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/)[1];
-        let count = parseInt(res.match(/AC 过的题目：共 (\d+) 道题/)[1]);
-        if (res.match(/"\/problem\/1"/)) {
-            // A + B Problem 不统计在内
-            --count;
+        let regex = /"\/problem\/(\d+)"/g, match, count = 0;
+        while (match = regex.exec(res)) {
+            let pid = parseInt(match[1]);
+            count += 100 < pid && pid < 300 && pid % 4 != 0; // 不统计自选题
         }
         return {
             id: id,
