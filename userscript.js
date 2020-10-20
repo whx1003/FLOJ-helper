@@ -140,7 +140,7 @@ function getUserInfomation(id) {
     return $.get({
         url: `https://ioihw20.duck-ac.cn/user/profile/ioi2021_${id}`,
     }).then((res) => {
-        let info = res.match(/<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/)[1];
+        let info = res.match(/<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s)[1];
         let regex = /"\/problem\/(\d+)"/g, match, count = 0;
         while (match = regex.exec(res)) {
             let pid = parseInt(match[1]);
