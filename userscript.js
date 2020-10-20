@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ioihw2020 做题工具
 // @namespace    https://ioihw2020.duck-ac.cn
-// @version      0.4.1
+// @version      0.4.3
 // @description  我啥时候也进个集训队啊
 // @author       memset0
 // @match        https://ioihw20.duck-ac.cn/
@@ -136,11 +136,20 @@ const dbWinner = {
 };
 
 function getUserInfomation(id) {
+    function strMatch(source, reg_exp, default_value) {
+        let match_result = source.match(reg_exp);
+        if (match_result) {
+            return match_result[1];
+        } else {
+            console.log("[Warning] string doesn't match!");
+            return default_value;
+        }
+    }
     id = id < 10 ? '0' + String(id) : String(id);
     return $.get({
         url: `https://ioihw20.duck-ac.cn/user/profile/ioi2021_${id}`,
     }).then((res) => {
-        let info = res.match(/<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s)[1];
+        let info = strMatch(res, /<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s, '<div class="text-danger">&lt;error&gt;</div>');
         let regex = /"\/problem\/(\d+)"/g, match, count = 0;
         while (match = regex.exec(res)) {
             let pid = parseInt(match[1]);
