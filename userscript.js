@@ -201,7 +201,7 @@ const dbWinner = {
 };
 
 function getProblemInfo(problemId) {
-    let problemType = problemId == 1 ? '测试题' : (problemId % 4 ? '作业题' : '自选题');
+    let problemType = problemId == 1 ? '测试题' : (problemId < 300 && problemId % 4 ? '作业题' : '自选题');
 
     let shortcut, shortcutId, contestId
     if (problemId >= 101) {
