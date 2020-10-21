@@ -324,13 +324,13 @@ async function mainRender() {
     }
 
     if (location.pathname == '/problems' || location.pathname.startsWith('/problems/')) {
-        $('.table thead tr th').eq(2).css('width', '170px');
+        $('.table thead tr th:last-child').css('width', '170px');
         $('.table thead tr').eq(0).append('<th class="text-center" style="width: 120px;">来源</th>');
         $('.table tbody tr').each(function(index, element) {
             let $element = $(element);
             let problemId = $element.children('td').eq(0).text().slice(1);
             let { problemType, shortcut, contestId } = getProblemInfo(problemId);
-            
+
             let extraContent = '';
             if (problemType == '作业题') {
                 extraContent = `
@@ -360,7 +360,7 @@ async function mainRender() {
                 </a>
             </span>
         </li>`);
-        
+
         if (problemType == '作业题') {
             $(".nav-tabs").eq(0).append(`<li>
                 <span style="display:block;padding:10px 15px;">
