@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ioihw2020 做题工具
 // @namespace    https://ioihw2020.duck-ac.cn
-// @version      0.5.5
+// @version      0.5.7
 // @description  我啥时候也进个集训队啊
 // @author       memset0
 // @match        https://ioihw20.duck-ac.cn/
@@ -241,7 +241,7 @@ function getUserInfo(id) {
     return $.get({
         url: `https://ioihw20.duck-ac.cn/user/profile/ioi2021_${id}`,
     }).then((res) => {
-        let info = strMatch(res, /<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s, '<div class="text-danger">&lt;error&gt;</div>');
+        let motto = strMatch(res, /<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s, '<div class="text-danger">&lt;error&gt;</div>');
         let regex = /"\/problem\/(\d+)"/g, match, count = 0;
         while (match = regex.exec(res)) {
             let problemId = parseInt(match[1]);
@@ -250,9 +250,9 @@ function getUserInfo(id) {
         }
 
         return {
-            id: id,
-            info: info,
-            count: count,
+            id,
+            motto,
+            count,
         };
     });
 }
@@ -317,7 +317,7 @@ async function mainRender() {
             let $tr = $('<tr></tr>');
             $tr.append(`<td>${user.id}</td>`);
             $tr.append(`<td><a class="uoj-username" href="https://ioihw20.duck-ac.cn/user/profile/ioi2021_${user.id}" style="color:rgb(75,175,178)">ioi2021_${user.id}</a></td>`);
-            $tr.append(`<td>${user.info}</td>`);
+            $tr.append(`<td>${user.motto}</td>`);
             $tr.append(`<td>${user.count}</td>`);
             $('.table tbody').append($tr);
         }
@@ -325,7 +325,7 @@ async function mainRender() {
 
     if (location.pathname == '/problems' || location.pathname.startsWith('/problems/')) {
         $('.table thead tr th:last-child').css('width', '170px');
-        $('.table thead tr').eq(0).append('<th class="text-center" style="width: 120px;">来源</th>');
+        $('.table thead tr').eq(0).append('<th class="text-center" style="width: 110px;">来源</th>');
         $('.table tbody tr').each(function(index, element) {
             let $element = $(element);
             let problemId = $element.children('td').eq(0).text().slice(1);
