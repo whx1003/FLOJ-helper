@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ioihw2020 做题工具
 // @namespace    https://ioihw2020.duck-ac.cn
-// @version      0.5.7
+// @version      0.5.8
 // @description  我啥时候也进个集训队啊
 // @author       memset0
 // @match        https://ioihw20.duck-ac.cn/
@@ -214,7 +214,7 @@ function getProblemInfo(problemId) {
     if (problemId == 1) authorName = 'root';
     else {
         authorId = (problemId - 101) >> 2;
-        authorName = 'ioi2021_' + (authorId < 10 ? '0' : '') + String(authorId);
+        authorName = 'ioi2021_' + (problemId < 300 ? (authorId < 10 ? '0' : '') + String(authorId) : problemId - 300 + 49 );
     }
 
     return {
