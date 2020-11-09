@@ -258,7 +258,7 @@ function getUserInfo(id) {
 }
 
 async function render() {
-    $('*').each(function () {
+    $('.uoj-username').each(function () {
         if (this.innerHTML.match(/^ioi2021_[0-9]+$/g)) {
             let uid = parseInt(this.innerHTML.match(/ioi2021_[0-9]+/g)[0].slice(8));
             let name = userlist[uid];
@@ -355,9 +355,7 @@ async function mainRender() {
             <span style="display:block;padding:10px 15px;font-weight:bold;">
                 ${problemType}
                 <span style="font-weight:normal">by</span>
-                <a class="uoj-username" target="_blank" href="https://ioihw20.duck-ac.cn/user/profile/${authorName}" style="color:rgb(75,175,178)">
-                    <span style="font-weight: normal">${authorName}</span>
-                </a>
+                <a class="uoj-username" target="_blank" href="https://ioihw20.duck-ac.cn/user/profile/${authorName}" style="color:rgb(75,175,178)">${authorName}</a>
             </span>
         </li>`);
 
