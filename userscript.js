@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.1.1
+// @version      1.1.2
 // @author       yhx-12243
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -207,14 +207,32 @@ class mainRanklist {
 		});
 	}
 
-	static render($container, header) {
+	static render() {
 		$('head').append(`<style>
 .table>tbody>tr>td.warning {background-color: #fcf8e3 !important}
 .table>tbody>tr:hover>td.warning {background-color: #faf2cc !important}
 .table>tbody>tr>td.success {background-color: #dff0d8 !important}
 .table>tbody>tr:hover>td.success {background-color: #d0e9c6 !important}
 </style>`);
-		$container.long_table(this.standings, 1, header, (row, idx) => {
+		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th>'], row_2 = ['<tr>'];
+		this.contests.forEach(contest => {
+			let n = contest.data.problems.length;
+			row_1.push(`<th colspan="${n + 3}" style="border-bottom-width: 1px; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
+			row_2.push(
+				'<th style="min-width: 4em">排名</th>',
+				...contest.data.problems.map((problem, idx) => `<th style="min-width: 2em"><a href="/contest/${contest.id}/problem/${problem}">${String.fromCharCode(65 + idx)}</a></th>`),
+				'<th style="min-width: 3.5em">总分</th>',
+				'<th style="min-width: 4em">折算分</th>'
+			);
+		});
+		row_1.push(
+			'<th rowspan="2" style="min-width: 5em">总分</th>',
+			'<th rowspan="2" style="min-width: 6em">总折算分</th>',
+			'</tr>'
+		), row_2.push('</tr>');
+
+		let $container = $('div.uoj-content');
+		$container.long_table(this.standings, 1, row_1.concat(row_2).join(''), (row, idx) => {
 			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>'), N = 0;
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
 			for (let record of row.records) {
@@ -301,13 +319,15 @@ class mainRanklist {
 
 	static async getContest(contest) {
 		// load data if immutable
-		try {
-			let res = localStorage.getItem(`contest_${contest.id}`);
-			if (!res) throw Error;
-			contest.data = JSON.parse(res);
-			return;
-		} catch (e) {
-		};
+		if (contest.status === 2) {
+			try {
+				let res = localStorage.getItem(`contest_${contest.id}`);
+				if (!res) throw Error;
+				contest.data = JSON.parse(res);
+				return;
+			} catch (e) {
+			};
+		}
 		// fetch data
 		let response = await (await fetch(`/contest/${contest.id}/standings`)).text();
 		let raw = response.match(/<div id="standings"><\/div><script type="text\/javascript">(.*?)<\/script>/s);
@@ -323,51 +343,46 @@ class mainRanklist {
 			return {standings_version, contest_id, standings, score, problems};
 		})(raw);
 		// save data
-		localStorage.setItem(`contest_${contest.id}`, JSON.stringify(contest.data));
+		if (contest.status === 2) {
+			localStorage.setItem(`contest_${contest.id}`, JSON.stringify(contest.data));
+		}
 	}
 
 	static async main() {
-		document.title = document.title.replace('404', '互测总榜');
-		let $container = $('div.uoj-content').empty();
-		let response = await (await fetch('/contests')).text();
+		const statuses = {
+			'等待评测': 1,
+			'正在评测': 1,
+			'已结束': 2,
+			'pending final test': 1,
+			'final testing': 1,
+			'ended': 2
+		}
+		document.title = document.title.replace(/40[34]/, '互测总榜');
+		$('div.uoj-content').empty();
 		this.contests = [];
+		let response = await (await fetch('/contests')).text();
 		for (let match of response.matchAll(/<tr><td><a.*?<\/tr>/gs)) {
 			let $cell = $.parseHTML(match[0])[0].cells[0];
 			let $a = $cell.querySelector('a');
 			let id = +$a.href.slice($a.href.lastIndexOf('/') + 1);
-			if (!isNaN(id) && !vains.includes(id) && $cell.querySelector('sup').textContent === '已结束') {
-				this.contests.push({id, name: $a.textContent});
+			if (!isNaN(id) && !vains.includes(id)) {
+				let status = statuses[$cell.querySelector('sup')?.textContent];
+				if (status) this.contests.push({id, name: $a.textContent, status});
 			}
 		}
 		let promises = this.contests.map(this.getContest);
 		await Promise.all(promises);
-		this.contests = this.contests.sort((x, y) => x.id - y.id).filter(contest => contest.data !== 'failed');
-
-		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th>'], row_2 = ['<tr>'];
-		this.contests.forEach(contest => {
-			let n = contest.data.problems.length;
-			row_1.push(`<th colspan="${n + 3}" style="border-bottom-width: 1px; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
-			row_2.push(
-				'<th style="min-width: 4em">排名</th>',
-				...contest.data.problems.map((problem, idx) => `<th style="min-width: 2em"><a href="/contest/${contest.id}/problem/${problem}">${String.fromCharCode(65 + idx)}</a></th>`),
-				'<th style="min-width: 3.5em">总分</th>',
-				'<th style="min-width: 4em">折算分</th>'
-			);
-		});
-		row_1.push(
-			'<th rowspan="2" style="min-width: 5em">总分</th>',
-			'<th rowspan="2" style="min-width: 6em">总折算分</th>',
-			'</tr>'
-		), row_2.push('</tr>');
+		this.contests = this.contests.filter(contest => contest.data !== 'failed').sort((x, y) => x.id - y.id);
 
 		this.analyze();
-		this.render($container, row_1.concat(row_2).join(''));
+		this.render();
 	}
 };
 
 (async () => {
 	$('.navbar .navbar-nav').append('<li><a href="/ranklist">卷王榜</a></li>')
 							.append('<li><a href="/standings">互测总榜</a></li>');
+	$('div.uoj-footer>p:last-child').append(' | <a href="https://github.com/yhx-12243/ioihw-helper">ioihw-helper</a>（已修改）');
 
 	if (location.pathname === '/ranklist') {
 		await Ranklist.render();
