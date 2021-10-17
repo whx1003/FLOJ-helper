@@ -1,105 +1,26 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.1
+// @version      1.1.1
 // @author       yhx-12243
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
+// @updateURL    http://82.157.186.142/ioi21hw_helper.js
+// @downloadURL  http://82.157.186.142/ioi21hw_helper.js
 // @supportURL   https://github.com/yhx-12243/ioihw-helper/issues
 // @homepage     https://github.com/yhx-12243/ioihw-helper
 // @grant        none
 // ==/UserScript==
 
 const userlist = [
-	'张隽恺',
-	'周航锐',
-	'胡杨',
-	'潘佳奇',
-	'曹越',
-	'张庭瑞',
-	'彭博',
-	'齐楚涵',
-	'蔡欣然',
-	'胡昊',
-	'陈于思',
-	'陶立宇',
-	'戴江齐',
-	'万成章',
-	'陈潇然',
-	'孙若凡',
-	'陈知轩',
-	'许庭强',
-	'冯施源',
-	'杨珖',
-	'杨宇辰',
-	'丁晓漫',
-	'袁浩天',
-	'张景行',
-	'宣毅鸣',
-	'罗恺',
-	'张记僖',
-	'杜盛全',
-	'常瑞年',
-	'吴雨洋',
-	'陈扩文',
-	'唐绍轩',
-	'张家瑞',
-	'周方远',
-	'郑路明',
-	'谢濡键',
-	'邓奕鹏',
-	'王蔚澄',
-	'陈东武',
-	'俞跃',
-	'孙嘉伟',
-	'林帮才',
-	'鲁劲帆',
-	'孟煜皓',
-	'史钰申',
-	'李天宇',
-	'俞越',
-	'郭雨豪',
-	'张尊喆',
-	'王相文',
-	'修煜然',
-	'程思元',
-	'施开成',
-	'张湫阳',
-	'潘逸飞',
-	'金天',
-	'李尚泽',
-	'张文哲',
-	'王又嘉',
-	'崔隽章',
-	'管晏如',
-	'万弘',
-	'胡昊',
-	'张扬',
-	'王天',
-	'杨欣烨',
-	'王浏清',
-	'朱羿恺',
-	'王浩旭',
-	'俞畅',
-	'吴明禹',
-	'何润元',
-	'李可',
-	'李昕然',
-	'汤智铖',
-	'黄嘉豪',
-	'任舍予',
-	'何卓锟',
-	'周子衡',
-	'肖子尧',
-	'张迅',
-	'朱厚源',
-	'钟自厚',
-	'曹立',
-	'杨宁远',
-	'朱睿哲',
-	'周转',
-	'褚轩宇',
-	'李铭乐洋',
-	'吴戈',
+	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
+	'陈于思', '陶立宇', '戴江齐', '万成章', '陈潇然', '孙若凡', '陈知轩', '许庭强', '冯施源',   '杨珖',
+	'杨宇辰', '丁晓漫', '袁浩天', '张景行', '宣毅鸣', '罗恺',   '张记僖', '杜盛全', '常瑞年',   '吴雨洋',
+	'陈扩文', '唐绍轩', '张家瑞', '周方远', '郑路明', '谢濡键', '邓奕鹏', '王蔚澄', '陈东武',   '俞跃',
+	'孙嘉伟', '林帮才', '鲁劲帆', '孟煜皓', '史钰申', '李天宇', '俞越',   '郭雨豪', '张尊喆',   '王相文',
+	'修煜然', '程思元', '施开成', '张湫阳', '潘逸飞', '金天',   '李尚泽', '张文哲', '王又嘉',   '崔隽章',
+	'管晏如', '万弘',   '胡昊',   '张扬',   '王天',   '杨欣烨', '王浏清', '朱羿恺', '王浩旭',   '俞畅',
+	'吴明禹', '何润元', '李可',   '李昕然', '汤智铖', '黄嘉豪', '任舍予', '何卓锟', '周子衡',   '肖子尧',
+	'张迅',   '朱厚源', '钟自厚', '曹立',   '杨宁远', '朱睿哲', '周转',   '褚轩宇', '李铭乐洋', '吴戈',
 	'朱梓铭'
 ];
 
@@ -111,7 +32,7 @@ const colors = [
 ];
 
 const vains = [
-	4
+	4,
 ];
 
 const db = {
@@ -138,7 +59,7 @@ const dbWinner = {
 	query() {
 		let plain = parseInt(localStorage.getItem('hw-winner'));
 		return isNaN(plain) ? -1 : plain;
-	}
+	},
 };
 
 function getProblemInfo(problemId) {
@@ -238,11 +159,10 @@ class Ranklist {
 		}
 		$('.table thead tr th:last-child').text('通过数');
 		for (let user of userList) {
-			let $tr = $('<tr></tr>');
-			$tr.append(`<td>${user.id}</td>`);
-			$tr.append(`<td>${getUserLink(`ioi2022_${user.id}`, 1500)}</td>`);
-			$tr.append(`<td>${user.motto}</td>`);
-			$tr.append(`<td>${user.count}</td>`);
+			let $tr = $('<tr></tr>').append(`<td>${user.id}</td>`)
+				.append(`<td>${getUserLink(`ioi2022_${user.id}`, 1500)}</td>`)
+				.append(`<td>${user.motto}</td>`)
+				.append(`<td>${user.count}</td>`);
 			$('.table tbody').append($tr);
 		}
 	}
@@ -253,6 +173,7 @@ class mainRanklist {
 		this.standings = userlist.map((name, idx) => ({
 			idx,
 			id: `ioi2022_${idx.toString().padStart(2, '0')}`,
+			Tscore: 0,
 			points: 0, // limit 100
 			points_S60: 0, // limit 80
 			points_F20: 0, // limit 20
@@ -277,6 +198,7 @@ class mainRanklist {
 				record.points_F20 = (record.score >= contest.first20 ? 3 : 0);
 				user.points_S60 += record.points_S60;
 				user.points_F20 += record.points_F20;
+				user.Tscore += record.score;
 			});
 			for (let id in sc) {
 				let user = standings_map[id];
@@ -293,10 +215,11 @@ class mainRanklist {
 .table>tbody>tr:hover>td.success {background-color: #d0e9c6 !important}
 </style>`);
 		$container.long_table(this.standings, 1, header, (row, idx) => {
-			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>');
+			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>'), N = 0;
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
 			for (let record of row.records) {
 				let n = record.contest.data.problems.length, rank_str = '';
+				N += n;
 				if (record.rank) {
 					rank_str = `${record.ctt_rank ? record.ctt_rank : '-'} (${record.rank})`;
 				}
@@ -312,16 +235,17 @@ class mainRanklist {
 					}
 				}
 				if (record.score != undefined) {
-					ret += `<td${record.score >= 60 ? ' class="success"' : ''}><span class="uoj-score" data-max="${n * 100}" style="color: ${getColOfScore(record.score / n)}">${record.score}</span></td>"`;
+					ret += `<td${record.score >= 60 ? ' class="success"' : ''}><span class="uoj-score" data-max="${n * 100}" style="color: ${getColOfScore(record.score / n)}">${record.score}</span></td>`;
 				} else {
 					record.score = -1;
 					ret += '<td></td>';
 				}
 				record.points = (record.points_S60 ??= 0) + (record.points_F20 ??= 0);
-				ret += `<td>${(record.points * .05).toFixed(2)} (${(record.points_S60 * .05).toFixed(2)} + ${(record.points_F20 * .05).toFixed(2)})</td>`;
+				ret += `<td>${(record.points * .05).toFixed(2)}</td>`;
 			}
+			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
 			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
-			ret += `<td>${(row.points * .05).toFixed(2)} (${(Math.min(row.points_S60, 80) * .05).toFixed(2)} + ${(Math.min(row.points_F20, 20) * .05).toFixed(2)})</td></tr>`;
+			ret += `<td>${(row.points * .05).toFixed(2)}</td></tr>`;
 			return ret;
 		}, {
 			echo_full: true,
@@ -346,6 +270,7 @@ class mainRanklist {
 			cmpFns = {
 				natural: cmpIdx,
 				username: andThen((A, B) => cmp(userlist[A.idx], userlist[B.idx]), cmpIdx),
+				score: andThen((A, B) => -cmp(A.Tscore, B.Tscore), cmpIdx),
 				points: andThen((A, B) => -cmp(A.points, B.points), cmpIdx),
 				details: []
 			};
@@ -364,6 +289,7 @@ class mainRanklist {
 			if (idx === 0) {
 				if (idc === 0) return sort(cmpFns.natural);
 				if (idc === 1) return sort(cmpFns.username);
+				if (idc === tr.cells.length - 2) return sort(cmpFns.score);
 				if (idc === tr.cells.length - 1) return sort(cmpFns.points);
 			} else if (idx === 1) {
 				return sort(cmpFns.details[idc]);
@@ -417,18 +343,22 @@ class mainRanklist {
 		await Promise.all(promises);
 		this.contests = this.contests.sort((x, y) => x.id - y.id).filter(contest => contest.data !== 'failed');
 
-		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 5em">用户名</th>'], row_2 = [''];
+		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th>'], row_2 = ['<tr>'];
 		this.contests.forEach(contest => {
 			let n = contest.data.problems.length;
 			row_1.push(`<th colspan="${n + 3}" style="border-bottom-width: 1px; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
 			row_2.push(
-				'<th style="min-width: 3.5em">排名</th>',
+				'<th style="min-width: 4em">排名</th>',
 				...contest.data.problems.map((problem, idx) => `<th style="min-width: 2em"><a href="/contest/${contest.id}/problem/${problem}">${String.fromCharCode(65 + idx)}</a></th>`),
 				'<th style="min-width: 3.5em">总分</th>',
-				'<th style="min-width: 4.5em">折算分</th>'
+				'<th style="min-width: 4em">折算分</th>'
 			);
 		});
-		row_1.push('<th rowspan="2" style="min-width: 6em">总折算分</th>', '</tr>'), row_2.push('</tr>');
+		row_1.push(
+			'<th rowspan="2" style="min-width: 5em">总分</th>',
+			'<th rowspan="2" style="min-width: 6em">总折算分</th>',
+			'</tr>'
+		), row_2.push('</tr>');
 
 		this.analyze();
 		this.render($container, row_1.concat(row_2).join(''));
@@ -437,7 +367,7 @@ class mainRanklist {
 
 (async () => {
 	$('.navbar .navbar-nav').append('<li><a href="/ranklist">卷王榜</a></li>')
-	$('.navbar .navbar-nav').append('<li><a href="/standings">互测总榜</a></li>')
+							.append('<li><a href="/standings">互测总榜</a></li>');
 
 	if (location.pathname === '/ranklist') {
 		await Ranklist.render();
