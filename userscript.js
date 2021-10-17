@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.2
+// @version      1.2.3
 // @author       yhx-12243
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -10,6 +10,50 @@
 // @homepage     https://github.com/yhx-12243/ioihw-helper
 // @grant        none
 // ==/UserScript==
+////////////////////////////////////////////////////////////////////////////////////
+//                                                                                //
+//                                Made by yhx-12243                               //
+//                                                                                //
+//                              jffLLLLLLLLLLLLLLffj                              //
+//                         jfLLGGGLfffjjjjjjjjfffLGGGLLfj                         //
+//                     jffLGGLji;,,..          ..,,;ijLGGLL                       //
+//                   ffLGLfi,:                        ::ijLGGL                    //
+//                ffLLLji:              ,j;.           it;:;tffLf                 //
+//              ffLLft,.        :;;,,;tD#f,            ;LKf;ifDGLLf               //
+//            GLfLLt,           :iLDDGj;:                ,tLGfiitLLfLG            //
+//           LLLGj;                         :;:     .;,          ;jGLLL           //
+//          LLLLi:                       .,f#E;     ,f#f,         .iLLLL          //
+//         LLLfi.                   .,ijLDEf;        .iG#L;:.      .ifLL          //
+//        LLLfi             ;LWEEEKKDGLti,             .:iLEWKK#f:   ifLLL        //
+//        LLG;.           ..:,,,,,,::..   ;,     :.     ,, ..:,,:....:iLLL        //
+//       LLff:         .::,,:::::::::..   fGi..:;Gf,:.:tKt   ..::,,,,:;jfLLf      //
+//       LLf;.         ..::::::::::::..   .iDK##KGGWWKKE;    .::::::::,;fLLG      //
+//      LLLj.                              .tDftjttjtfGj.              :jLLL      //
+//      LLLt                                ,DLjtttttLLi.               tLLLf     //
+//      LLft                                .GDftttjfEf.                tfLLf     //
+//      LLft                                 iGGtttjGDi                 tfLLf     //
+//      LLLt                                  iDDLLGE;                  tLLLf     //
+//      LLLj.                                  .ijj;.                  .jLLL      //
+//       LLf;.                                                        .;fLLG      //
+//       LLff:                                                        :ffLL       //
+//        LLG;.                   .,;tfLLLfji,:      :,tjfLLLfji,.   .iGLL        //
+//        LLLfi                .,tGDLji;;;itfGDj;.:ifDGfti;;;itLDGj,.ifLLL        //
+//         LLLfi.             :jGLi:         .;fDLLLj,.         :iLGfLLLf         //
+//          LLLLi:           ;LLt:             .;fGj.             :iLfLLG         //
+//           LLLGj;         ,jGt                 ;Lf;.             .tfLLL         //
+//            GLfLLt,      .tLj,                 :iLf:              :jGLL         //
+//              ffLLLj,.   .jLt:                 .;GL:              .tGLL         //
+//                ffLLLji: .;ff;                 ,jLf:              ,jLLL         //
+//                   ffLGLjtijGj:               .tGj:              :ffLLf         //
+//                     jffLLGLffL;.            ,fLLf,            .;fLLL           //
+//                         ffLLLLLfi,... ...:ijLfLLLLj;:..  ...,ifLLLf            //
+//                              ffLLGLffjjfLGLLLfLLLLLGGLfjjffGGLLff              //
+//                                ffffLLLLLffff      ffffLLLLLffff                //
+//                                                                                //
+//                                                                                //
+////////////////////////////////////////////////////////////////////////////////////
+
+const version = '1.2.3';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -350,10 +394,10 @@ class mainRanklist {
 
 	static async main() {
 		const statuses = {
-			'等待评测': 1,
+			'等待评测': 0,
 			'正在评测': 1,
 			'已结束': 2,
-			'pending final test': 1,
+			'pending final test': 0,
 			'final testing': 1,
 			'ended': 2
 		}
@@ -382,7 +426,7 @@ class mainRanklist {
 (async () => {
 	$('.navbar .navbar-nav').append('<li><a href="/ranklist">卷王榜</a></li>')
 							.append('<li><a href="/standings">互测总榜</a></li>');
-	$('div.uoj-footer>p:last-child').append(' | <a href="https://github.com/yhx-12243/ioihw-helper">ioihw-helper</a>（已修改）');
+	$('div.uoj-footer>p:last-child').append(` | <a href="https://github.com/yhx-12243/ioihw-helper">ioihw-helper ${version}</a>（已修改）`);
 
 	if (location.pathname === '/ranklist') {
 		await Ranklist.render();
