@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.1.2
+// @version      1.2
 // @author       yhx-12243
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -66,7 +66,7 @@ function getProblemInfo(problemId) {
 	let problemType, authorName;
 	if (101 <= problemId && problemId <= 150) {
 		problemType = '互测题';
-		authorName = `ioi2022_${problemId - 101}`;
+		authorName = `ioi2022_${(problemId - 101).toString().padStart(2, '0')}`;
 	} else {
 		problemType = '测试题';
 		authorName = 'root';
