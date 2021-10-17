@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.2.3
+// @version      1.3
 // @author       yhx-12243
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -53,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.2.3';
+const version = '1.3';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -142,7 +142,7 @@ function getUserInfo(id) {
 	});
 }
 
-async function render() {
+function globalRender() {
 	$('.uoj-username').each(function () {
 		let match;
 		if (match = this.textContent.match(/^ioi2022_([0-9]+)$/)) {
@@ -162,23 +162,16 @@ async function render() {
 			let pid = this.textContent.slice(1);
 			let status = db.query(pid);
 			this.style.color = colors[status];
-			if (status) {
-				this.style['font-weight'] = 'bold';
-			} else {
-				this.style['font-weight'] = 'normal';
-			}
+			this.style.fontWeight = (status ? 'bold' : 'normal');
+		}).click(function () {
+			let pid = this.textContent.slice(1);
+			let status = db.query(pid);
+			status = (status + 1) % colors.length;
+			db.update(pid, status);
+			this.style.color = colors[status];
+			this.style.fontWeight = (status ? 'bold' : 'normal');
 		});
 	}
-}
-
-if (location.pathname.startsWith('/problems')) {
-	$('.table tr td:first-child').click(function () {
-		let pid = this.textContent.slice(1);
-		let status = db.query(pid);
-		status = (status + 1) % colors.length;
-		db.update(pid, status);
-		render();
-	});
 }
 
 class Ranklist {
@@ -192,12 +185,7 @@ class Ranklist {
 			userListPromised.push(getUserInfo(userId));
 		}
 		let userList = await Promise.all(userListPromised);
-		userList.sort((firstUser, secondUser) => {
-			if (firstUser.count === secondUser.count) {
-				return parseInt(firstUser.id) - parseInt(secondUser.id);
-			}
-			return secondUser.count - firstUser.count;
-		});
+		userList.sort((firstUser, secondUser) => (secondUser.count - firstUser.count) || (parseInt(firstUser.id) - parseInt(secondUser.id)));
 		if (userList.length) {
 			dbWinner.update(userList[0].id);
 		}
@@ -227,27 +215,41 @@ class mainRanklist {
 		this.standings.forEach(standing => standings_map[standing.id] = standing);
 		globalThis.asdf = this.contests;
 		this.contests.forEach((contest, idx) => {
-			let i, j = -1, c = 0, restrict = Infinity, st = contest.data.standings, sc = contest.data.score;
-			for (i = 0; i < st.length; ++i)
-				if (CTT.includes(st[i][2][0])) {
-					if (++c <= 20) restrict = st[i][0];
-					st[i].push(~j && st[i][0] === st[j][0] ? st[j][4] : c);
+			let i, j = -1, c = 0, restrict = Infinity,
+				{standings, score, problems} = contest.data;
+			for (i = 0; i < standings.length; ++i)
+				if (CTT.includes(standings[i][2][0])) {
+					if (++c <= 20) restrict = standings[i][0];
+					standings[i].push(~j && standings[i][0] === standings[j][0] ? standings[j][4] : c);
 					j = i;
 				}
 			contest.first20 = restrict;
-			st.forEach(row => {
+			standings.forEach(row => {
 				let id = row[2][0], user = standings_map[id], record = user.records[idx];
 				[record.score, , , record.rank, record.ctt_rank] = row;
 				record.points_S60 = (record.score >= 60 ? 10 : 0);
 				record.points_F20 = (record.score >= contest.first20 ? 3 : 0);
-				user.points_S60 += record.points_S60;
-				user.points_F20 += record.points_F20;
 				user.Tscore += record.score;
 			});
-			for (let id in sc) {
+			for (let id in score) {
 				let user = standings_map[id];
-				user.records[idx].details = sc[id];
+				user.records[idx].details = score[id];
 			}
+			problems.forEach(pid => {
+				let {problemType: type, authorName: uid} = getProblemInfo(pid);
+				if (type === '互测题') {
+					console.log(uid);
+					let user = standings_map[uid], record = user.records[idx];
+					record.is_problemsetter = true;
+					record.points_S60 = 10;
+					record.points_F20 = 3;
+				}
+			});
+			this.standings.forEach(user => {
+				let record = user.records[idx];
+				user.points_S60 += (record.points_S60 ??= 0);
+				user.points_F20 += (record.points_F20 ??= 0);
+			});
 		});
 	}
 
@@ -257,6 +259,8 @@ class mainRanklist {
 .table>tbody>tr:hover>td.warning {background-color: #faf2cc !important}
 .table>tbody>tr>td.success {background-color: #dff0d8 !important}
 .table>tbody>tr:hover>td.success {background-color: #d0e9c6 !important}
+.table>tbody>tr>td.fuchsia {background-color: #f5bbf5 !important}
+.table>tbody>tr:hover>td.fuchsia {background-color: #f2a6f2 !important}
 </style>`);
 		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th>'], row_2 = ['<tr>'];
 		this.contests.forEach(contest => {
@@ -280,30 +284,31 @@ class mainRanklist {
 			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>'), N = 0;
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
 			for (let record of row.records) {
-				let n = record.contest.data.problems.length, rank_str = '';
+				let n = record.contest.data.problems.length, rank_str = '', class_str = (record.is_problemsetter ? ' class="fuchsia"' : '');
 				N += n;
 				if (record.rank) {
 					rank_str = `${record.ctt_rank ? record.ctt_rank : '-'} (${record.rank})`;
 				}
-				ret += `<td${(record.score ?? -1) >= record.contest.first20 ? ' class="warning"' : ''}>${rank_str}</td>`;
+				record.score ??= - 1;
+				ret += `<td${class_str || (record.score >= record.contest.first20 ? ' class="warning"' : '')}>${rank_str}</td>`;
 				record.details ??= [];
 				for (let i = 0; i < n; ++i) {
 					if (record.details[i]) {
 						let [score, , sid] = record.details[i];
-						ret += `<td><a href="/submission/${sid}" class="uoj-score" style="color: ${getColOfScore(score)}">${score}</a></td>`;
+						ret += `<td${class_str}><a href="/submission/${sid}" class="uoj-score" style="color: ${getColOfScore(score)}">${score}</a></td>`;
 					} else {
 						record.details[i] = [-1];
-						ret += '<td></td>';
+						ret += `<td${class_str}></td>`;
 					}
 				}
-				if (record.score != undefined) {
-					ret += `<td${record.score >= 60 ? ' class="success"' : ''}><span class="uoj-score" data-max="${n * 100}" style="color: ${getColOfScore(record.score / n)}">${record.score}</span></td>`;
+				if (record.score !== -1) {
+					ret += `<td${class_str || (record.score >= 60 ? ' class="success"' : '')}><span class="uoj-score" data-max="${n * 100}" style="color: ${getColOfScore(record.score / n)}">${record.score}</span></td>`;
 				} else {
 					record.score = -1;
-					ret += '<td></td>';
+					ret += `<td${class_str}></td>`;
 				}
-				record.points = (record.points_S60 ??= 0) + (record.points_F20 ??= 0);
-				ret += `<td>${(record.points * .05).toFixed(2)}</td>`;
+				record.points = record.points_S60 + record.points_F20;
+				ret += `<td${class_str}>${(record.points * .05).toFixed(2)}</td>`;
 			}
 			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
 			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
@@ -340,10 +345,11 @@ class mainRanklist {
 		this.contests.forEach((contest, idx) => {
 			let n = contest.data.problems.length;
 			let cmpScore = andThen((A, B) => -cmp(A.records[idx].score, B.records[idx].score), cmpIdx);
+			let cmpPoints = andThen((A, B) => -cmp(A.records[idx].points, B.records[idx].points), cmpIdx);
 			cmpFns.details.push(cmpScore);
 			for (let i = 0; i < n; ++i)
 				cmpFns.details.push(andThen((A, B) => -cmp(A.records[idx].details[i][0], B.records[idx].details[i][0]), cmpIdx));
-			cmpFns.details.push(cmpScore, cmpScore);
+			cmpFns.details.push(cmpScore, cmpPoints);
 		});
 
 		$container.find('th').click(function (e) {
@@ -467,5 +473,5 @@ class mainRanklist {
 		</li>`);
 	}
 
-	render();
+	globalRender();
 })();
