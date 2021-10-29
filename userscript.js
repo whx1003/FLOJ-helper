@@ -1,7 +1,7 @@
 //
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.4
+// @version      1.5
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -149,6 +149,9 @@ function globalRender() {
 		if (match = this.textContent.match(/^ioi2022_([0-9]+)$/)) {
 			let uid = parseInt(match[1]);
 			let name = userlist[uid];
+			if (uid >= 50) {
+				name += '<sup style="color: red">*</sup>';
+			}
 			if (uid === dbWinner.query()) {
 				name += '<sup style="color: red">卷王</sup>';
 			}
