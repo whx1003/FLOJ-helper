@@ -1,7 +1,8 @@
+//
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.3
-// @author       yhx-12243
+// @version      1.4
+// @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
 // @updateURL    http://82.157.186.142/ioi21hw_helper.js
@@ -206,6 +207,7 @@ class mainRanklist {
 			idx,
 			id: `ioi2022_${idx.toString().padStart(2, '0')}`,
 			Tscore: 0,
+			TSscore: 0,
 			points: 0, // limit 100
 			points_S60: 0, // limit 80
 			points_F20: 0, // limit 20
@@ -217,6 +219,7 @@ class mainRanklist {
 		this.contests.forEach((contest, idx) => {
 			let i, j = -1, c = 0, restrict = Infinity,
 				{standings, score, problems} = contest.data;
+			contest.max=standings[0][0];
 			for (i = 0; i < standings.length; ++i)
 				if (CTT.includes(standings[i][2][0])) {
 					if (++c <= 20) restrict = standings[i][0];
@@ -230,6 +233,7 @@ class mainRanklist {
 				record.points_S60 = (record.score >= 60 ? 10 : 0);
 				record.points_F20 = (record.score >= contest.first20 ? 3 : 0);
 				user.Tscore += record.score;
+				user.TSscore += record.score/contest.max*100;
 			});
 			for (let id in score) {
 				let user = standings_map[id];
@@ -262,7 +266,7 @@ class mainRanklist {
 .table>tbody>tr>td.fuchsia {background-color: #f5bbf5 !important}
 .table>tbody>tr:hover>td.fuchsia {background-color: #f2a6f2 !important}
 </style>`);
-		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th>'], row_2 = ['<tr>'];
+		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th><th rowspan="2" style="min-width: 5em">总分</th><th rowspan="2" style="min-width: 6em">总折算分</th><th rowspan="2" style="min-width: 6em">标准分</th></th>'], row_2 = ['<tr>'];
 		this.contests.forEach(contest => {
 			let n = contest.data.problems.length;
 			row_1.push(`<th colspan="${n + 3}" style="border-bottom-width: 1px; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
@@ -270,22 +274,30 @@ class mainRanklist {
 				'<th style="min-width: 4em">排名</th>',
 				...contest.data.problems.map((problem, idx) => `<th style="min-width: 2em"><a href="/contest/${contest.id}/problem/${problem}">${String.fromCharCode(65 + idx)}</a></th>`),
 				'<th style="min-width: 3.5em">总分</th>',
-				'<th style="min-width: 4em">折算分</th>'
+				'<th style="min-width: 4em">折算分</th>',
 			);
 		});
 		row_1.push(
-			'<th rowspan="2" style="min-width: 5em">总分</th>',
-			'<th rowspan="2" style="min-width: 6em">总折算分</th>',
 			'</tr>'
 		), row_2.push('</tr>');
 
 		let $container = $('div.uoj-content');
 		$container.long_table(this.standings, 1, row_1.concat(row_2).join(''), (row, idx) => {
-			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>'), N = 0;
+			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>'), N = 0,contest_cnt=0;
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
+
+			for (let record of row.records) {
+				let n = record.contest.data.problems.length;
+				N += n;
+                contest_cnt+=1;
+			}
+			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
+			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
+			ret += `<td>${(row.points * .05).toFixed(2)}</td>`;
+			ret += `<td><span class="uoj-score" data-max="100" style="color: ${getColOfScore(row.TSscore/contest_cnt)}">${(row.TSscore/contest_cnt).toFixed(2)}</span></td>`;
+			ret+=row.TSscore;
 			for (let record of row.records) {
 				let n = record.contest.data.problems.length, rank_str = '', class_str = (record.is_problemsetter ? ' class="fuchsia"' : '');
-				N += n;
 				if (record.rank) {
 					rank_str = `${record.ctt_rank ? record.ctt_rank : '-'} (${record.rank})`;
 				}
@@ -310,9 +322,7 @@ class mainRanklist {
 				record.points = record.points_S60 + record.points_F20;
 				ret += `<td${class_str}>${(record.points * .05).toFixed(2)}</td>`;
 			}
-			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
-			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
-			ret += `<td>${(row.points * .05).toFixed(2)}</td></tr>`;
+			ret+=`</tr>`;
 			return ret;
 		}, {
 			echo_full: true,
@@ -339,6 +349,7 @@ class mainRanklist {
 				username: andThen((A, B) => cmp(userlist[A.idx], userlist[B.idx]), cmpIdx),
 				score: andThen((A, B) => -cmp(A.Tscore, B.Tscore), cmpIdx),
 				points: andThen((A, B) => -cmp(A.points, B.points), cmpIdx),
+				Sscore: andThen((A, B) => -cmp(A.TSscore, B.TSscore), cmpIdx),
 				details: []
 			};
 
@@ -357,8 +368,10 @@ class mainRanklist {
 			if (idx === 0) {
 				if (idc === 0) return sort(cmpFns.natural);
 				if (idc === 1) return sort(cmpFns.username);
-				if (idc === tr.cells.length - 2) return sort(cmpFns.score);
-				if (idc === tr.cells.length - 1) return sort(cmpFns.points);
+				if (idc === 2) return sort(cmpFns.score);
+				if (idc === 3) return sort(cmpFns.points);
+				if (idc === 4) return sort(cmpFns.Sscore);
+
 			} else if (idx === 1) {
 				return sort(cmpFns.details[idc]);
 			} else {
