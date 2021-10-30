@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.5
+// @version      1.5.2
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -53,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.5.1';
+const version = '1.5.2';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -278,7 +278,7 @@ class mainRanklist {
 		});
 		row_1.push('</tr>'), row_2.push('</tr>');
 
-		let $container = $('div.uoj-content'), N = this.contests.map(contest => contest.data.problems.length).reduce((x, y) => x + y);
+		let $container = $('div.uoj-content'), N = this.contests.map(contest => contest.data.problems.length).reduce((x, y) => x + y, 0);
 		$container.long_table(this.standings, 1, row_1.concat(row_2).join(''), (row, idx) => {
 			let ret = (row.idx >= 50 ? '<tr class="info">' : '<tr>');
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
@@ -286,7 +286,9 @@ class mainRanklist {
 			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
 			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
 			ret += `<td>${(row.points * .05).toFixed(2)}</td>`;
-			ret += `<td><span class="uoj-score" style="color: ${getColOfScore(row.TSscore / this.contests.length)}">${(row.TSscore / this.contests.length).toFixed(2)}</span></td>`;
+
+			let TSscore = this.contests.length ? row.TSscore / this.contests.length : 0;
+			ret += `<td><span class="uoj-score" style="color: ${getColOfScore(TSscore)}">${TSscore.toFixed(2)}</span></td>`;
 
 			for (let record of row.records) {
 				let n = record.contest.data.problems.length, rank_str = '', class_str = (record.is_problemsetter ? ' class="fuchsia"' : '');
