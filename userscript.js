@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.5.2
+// @version      1.5.3
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -53,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.5.2';
+const version = '1.5.3';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -108,7 +108,7 @@ const dbWinner = {
 
 function getProblemInfo(problemId) {
 	let problemType, authorName;
-	if (101 <= problemId && problemId <= 150) {
+	if (101 <= problemId && problemId < 101 + userlist.length) {
 		problemType = '互测题';
 		authorName = `ioi2022_${(problemId - 101).toString().padStart(2, '0')}`;
 	} else {
