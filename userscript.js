@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.5.3
+// @version      1.6-rc1
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -8,6 +8,8 @@
 // @downloadURL  http://82.157.186.142/ioi21hw_helper.js
 // @supportURL   https://github.com/yhx-12243/ioihw-helper/issues
 // @homepage     https://github.com/yhx-12243/ioihw-helper
+// @require      https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.18.3/bootstrap-table.js
+// @require      https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.18.3/extensions/fixed-columns/bootstrap-table-fixed-columns.js
 // @grant        none
 // ==/UserScript==
 ////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +55,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.5.3';
+const version = '1.6-rc1';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -204,6 +206,37 @@ class Ranklist {
 }
 
 class mainRanklist {
+	static async getContest(contest) {
+		// load data if immutable
+		if (contest.status === 2) {
+			try {
+				let res = localStorage.getItem(`contest_${contest.id}`);
+				if (!res) throw Error;
+				contest.data = JSON.parse(res);
+				return;
+			} catch (e) {
+			};
+		}
+		// fetch data
+		let response = await (await fetch(`/contest/${contest.id}/standings`)).text();
+		let raw = response.match(/<div id="standings"><\/div><script type="text\/javascript">(.*?)<\/script>/s);
+		if (!raw) {
+			contest.data = 'failed';
+			return;
+		}
+		raw = raw[1];
+		raw = raw.slice(0, raw.lastIndexOf('$'));
+		contest.data = (r => {
+			let standings_version, contest_id, standings, score, problems;
+			eval(r);
+			return {standings_version, contest_id, standings, score, problems};
+		})(raw);
+		// save data
+		if (contest.status === 2) {
+			localStorage.setItem(`contest_${contest.id}`, JSON.stringify(contest.data));
+		}
+	}
+
 	static analyze() {
 		this.standings = userlist.map((name, idx) => ({
 			idx,
@@ -257,18 +290,25 @@ class mainRanklist {
 	}
 
 	static render() {
-		$('head').append(`<style>
+		let $style = $(`<style>
 .table>tbody>tr>td.warning {background-color: #fcf8e3 !important}
 .table>tbody>tr:hover>td.warning {background-color: #faf2cc !important}
 .table>tbody>tr>td.success {background-color: #dff0d8 !important}
 .table>tbody>tr:hover>td.success {background-color: #d0e9c6 !important}
 .table>tbody>tr>td.fuchsia {background-color: #f5bbf5 !important}
 .table>tbody>tr:hover>td.fuchsia {background-color: #f2a6f2 !important}
-</style>`);
-		let row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th><th rowspan="2" style="min-width: 5em">总分</th><th rowspan="2" style="min-width: 6em">总折算分</th><th rowspan="2" style="min-width: 5em">标准分</th></th>'], row_2 = ['<tr>'];
+.table-fixed-column.table>thead>tr>th {border-bottom-width: 1px}
+.table-fixed-column.table-striped>tbody>tr:nth-of-type(odd)>td {background-color: #f9f9f9}
+.table-fixed-column.table>thead>tr>th,.table-fixed-column.table-striped>tbody>tr:nth-of-type(even)>td {background-color: white}
+.table-fixed-column.table-hover>tbody>tr:hover>td {background-color: #f5f5f5}
+.table-fixed-column.table>tbody>tr.info>td {background-color: #d9edf7}
+.table-fixed-column.table-hover>tbody>tr.info:hover>td {background-color: #c4e3f3}
+.table-fixed-column.table>thead>tr:first-child>th:first-child,.table-fixed-column.table>tbody>tr>td:first-child {position: sticky; left: 0}
+</style>`).appendTo(document.head),
+			row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th><th rowspan="2" style="min-width: 5em">总分</th><th rowspan="2" style="min-width: 6em">总折算分</th><th rowspan="2" style="min-width: 5em">标准分</th></th>'], row_2 = ['<tr>'];
 		this.contests.forEach(contest => {
 			let n = contest.data.problems.length;
-			row_1.push(`<th colspan="${n + 3}" style="border-bottom-width: 1px; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
+			row_1.push(`<th colspan="${n + 3}" style="border-bottom: none; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
 			row_2.push(
 				'<th style="min-width: 4em">排名</th>',
 				...contest.data.problems.map((problem, idx) => `<th style="min-width: 2em"><a href="/contest/${contest.id}/problem/${problem}">${String.fromCharCode(65 + idx)}</a></th>`),
@@ -322,14 +362,26 @@ class mainRanklist {
 			echo_full: true,
 			get_row_index: true,
 			page_len: 1e308,
-			table_classes: ['table', 'table-bordered', 'table-hover', 'table-striped', 'table-text-center', 'table-vertical-middle', 'table-condensed']
+			table_classes: ['table', 'table-hover', 'table-striped', 'table-text-center', 'table-vertical-middle', 'table-condensed', 'table-fixed-column']
 		}).prepend('<div class="text-right text-muted">提示：点击表头可以排序</div>');
 
 		let rows = $container.find('thead>tr').get(),
 			body = $container.find('tbody'),
 			data_rows = [...body.get(0).rows];
-		console.assert(data_rows.length === this.standings.length);
-		for (let i = 0; i < this.standings.length; ++i) data_rows[i].extra_ioi2022 = this.standings[i];
+			console.assert(data_rows.length === this.standings.length);
+			for (let i = 0; i < this.standings.length; ++i) data_rows[i].extra_ioi2022 = this.standings[i];
+
+		// fix columns
+		const fixColumns = nColumns => {
+			let i, w = 0, sheet = $style.get(0).sheet;
+			$container.find('table').css('border-collapse', 'separate');
+			for (i = 1; i < nColumns; ) {
+				w += rows[0].cells[i++ - 1].offsetWidth;
+				sheet.insertRule(`.table-fixed-column.table>thead>tr:first-child>th:nth-child(${i}),.table-fixed-column.table>tbody>tr>td:nth-child(${i}) {position: sticky; left: ${w}px${i === nColumns ? '; border-right: 1px solid #ddd' : ''}}`, sheet.cssRules.length);
+			}
+		}
+		fixColumns(5);
+
 		// compare functions
 		const cmp = (A, B) => (A < B ? -1 : A > B ? 1 : 0),
 			cmpIdx = (A, B) => cmp(A.idx, B.idx),
@@ -357,7 +409,7 @@ class mainRanklist {
 			cmpFns.details.push(cmpScore, cmpPoints);
 		});
 
-		$container.find('th').click(function (e) {
+		$container.find('th').click(function () {
 			let tr = this.parentNode, idx = rows.indexOf(tr), idc = [].indexOf.call(tr.cells, this);
 			if (idx === 0) {
 				if (idc === 0) return sort(cmpFns.natural);
@@ -365,44 +417,12 @@ class mainRanklist {
 				if (idc === 2) return sort(cmpFns.score);
 				if (idc === 3) return sort(cmpFns.points);
 				if (idc === 4) return sort(cmpFns.Sscore);
-
 			} else if (idx === 1) {
 				return sort(cmpFns.details[idc]);
 			} else {
 				console.warn('[Warning] Unknown element', this);
 			}
 		});
-	}
-
-	static async getContest(contest) {
-		// load data if immutable
-		if (contest.status === 2) {
-			try {
-				let res = localStorage.getItem(`contest_${contest.id}`);
-				if (!res) throw Error;
-				contest.data = JSON.parse(res);
-				return;
-			} catch (e) {
-			};
-		}
-		// fetch data
-		let response = await (await fetch(`/contest/${contest.id}/standings`)).text();
-		let raw = response.match(/<div id="standings"><\/div><script type="text\/javascript">(.*?)<\/script>/s);
-		if (!raw) {
-			contest.data = 'failed';
-			return;
-		}
-		raw = raw[1];
-		raw = raw.slice(0, raw.lastIndexOf('$'));
-		contest.data = (r => {
-			let standings_version, contest_id, standings, score, problems;
-			eval(r);
-			return {standings_version, contest_id, standings, score, problems};
-		})(raw);
-		// save data
-		if (contest.status === 2) {
-			localStorage.setItem(`contest_${contest.id}`, JSON.stringify(contest.data));
-		}
 	}
 
 	static async main() {
@@ -451,7 +471,7 @@ class mainRanklist {
 
 	if (location.pathname.startsWith('/problems')) {
 		$('.table thead tr th:last-child').css('width', '170px');
-		$('.table thead tr').eq(0).append('<th class="text-center" style="width: 95px;">来源</th>');
+		$('.table thead tr').eq(0).append('<th class="text-center" style="width: 105px;">来源</th>');
 		$('.table tbody tr').each(function (index, element) {
 			let $element = $(element);
 			let problemId = $element.children('td').eq(0).text().slice(1);
