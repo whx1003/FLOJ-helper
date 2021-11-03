@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.6-rc1
+// @version      1.6-rc2
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -8,8 +8,6 @@
 // @downloadURL  http://82.157.186.142/ioi21hw_helper.js
 // @supportURL   https://github.com/yhx-12243/ioihw-helper/issues
 // @homepage     https://github.com/yhx-12243/ioihw-helper
-// @require      https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.18.3/bootstrap-table.js
-// @require      https://cdn.bootcdn.net/ajax/libs/bootstrap-table/1.18.3/extensions/fixed-columns/bootstrap-table-fixed-columns.js
 // @grant        none
 // ==/UserScript==
 ////////////////////////////////////////////////////////////////////////////////////
@@ -55,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.6-rc1';
+const version = '1.6-rc2';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
