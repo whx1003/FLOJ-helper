@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.6-rc2
+// @version      1.6
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -53,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.6-rc2';
+const version = '1.6';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -69,7 +69,7 @@ const userlist = [
 ];
 
 const colors = [
-	'black',
+	'',
 	'green',
 	'yellow',
 	'red',
@@ -78,6 +78,8 @@ const colors = [
 const vains = [
 	4,
 ];
+
+const rUsername = /^ioi2022_([0-9]+)$/;
 
 const db = {
 	load() {
@@ -140,41 +142,6 @@ function getUserInfo(id) {
 
 		return {id, motto, count};
 	});
-}
-
-function globalRender() {
-	$('.uoj-username').each(function () {
-		let match;
-		if (match = this.textContent.match(/^ioi2022_([0-9]+)$/)) {
-			let uid = parseInt(match[1]);
-			let name = userlist[uid];
-			if (uid >= 50) {
-				name += '<sup style="color: red">*</sup>';
-			}
-			if (uid === dbWinner.query()) {
-				name += '<sup style="color: red">卷王</sup>';
-			}
-			if (name) {
-				this.innerHTML = '<span style="font-weight: normal">' + name + '</span>';
-			}
-		}
-	});
-
-	if (location.pathname.startsWith('/problems')) {
-		$('.table tr td:first-child').each(function () {
-			let pid = this.textContent.slice(1);
-			let status = db.query(pid);
-			this.style.color = colors[status];
-			this.style.fontWeight = (status ? 'bold' : 'normal');
-		}).click(function () {
-			let pid = this.textContent.slice(1);
-			let status = db.query(pid);
-			status = (status + 1) % colors.length;
-			db.update(pid, status);
-			this.style.color = colors[status];
-			this.style.fontWeight = (status ? 'bold' : 'normal');
-		});
-	}
 }
 
 class Ranklist {
@@ -333,7 +300,7 @@ class mainRanklist {
 				if (record.rank) {
 					rank_str = `${record.ctt_rank ? record.ctt_rank : '-'} (${record.rank})`;
 				}
-				record.score ??= - 1;
+				record.score ??= -1;
 				ret += `<td${class_str || (record.score >= record.contest.first20 ? ' class="warning"' : '')}>${rank_str}</td>`;
 				record.details ??= [];
 				for (let i = 0; i < n; ++i) {
@@ -366,8 +333,8 @@ class mainRanklist {
 		let rows = $container.find('thead>tr').get(),
 			body = $container.find('tbody'),
 			data_rows = [...body.get(0).rows];
-			console.assert(data_rows.length === this.standings.length);
-			for (let i = 0; i < this.standings.length; ++i) data_rows[i].extra_ioi2022 = this.standings[i];
+		console.assert(data_rows.length === this.standings.length);
+		for (let i = 0; i < this.standings.length; ++i) data_rows[i].extra_ioi2022 = this.standings[i];
 
 		// fix columns
 		const fixColumns = nColumns => {
@@ -469,7 +436,7 @@ class mainRanklist {
 
 	if (location.pathname.startsWith('/problems')) {
 		$('.table thead tr th:last-child').css('width', '170px');
-		$('.table thead tr').eq(0).append('<th class="text-center" style="width: 105px;">来源</th>');
+		$('.table thead tr').eq(0).append('<th class="text-center" style="width: 105px">来源</th>');
 		$('.table tbody tr').each(function (index, element) {
 			let $element = $(element);
 			let problemId = $element.children('td').eq(0).text().slice(1);
@@ -480,7 +447,47 @@ class mainRanklist {
 				extraContent = `by ${getUserLink(authorName, 1500)}`;
 			}
 
-			$element.append('<td>' + extraContent + '</td>');
+			$element.append(`<td>${extraContent}</td>`);
+		});
+
+		const toggle = function(elem, update) {
+			let pid = elem.textContent.slice(1), status = db.query(pid);
+			if (update) {
+				db.update(pid, status = (status + 1) % colors.length);
+			}
+			elem.style.color = colors[status];
+			elem.style.fontWeight = (status ? 'bold' : '');
+		}
+
+		$('.table tr td:first-child').each(function () {
+			toggle(this, false);
+		}).click(function () {
+			toggle(this, true);
+		});
+	}
+
+	if (location.pathname.startsWith('/submissions')) {
+		let $input = $('#input-submitter'), value = $input.val(), match;
+		if (match = value.match(rUsername)) {
+			let uid = parseInt(match[1]);
+			if (uid < userlist.length) {
+				$input.val(userlist[uid]);
+			}
+		}
+
+		$('#form-search').off('submit').on('submit', function (e) {
+			e.preventDefault();
+
+			let qs = ['problem_id', 'submitter', 'min_score', 'max_score', 'language'].flatMap(key => {
+				let value = $(`#input-${key}`).val(), id;
+				if (!value) return [];
+				if (key === 'submitter' && ~(id = userlist.indexOf(value))) {
+					value = `ioi2022_${id.toString().padStart(2, '0')}`;
+				}
+				return [`${key}=${encodeURIComponent(value)}`];
+			}).join('&');
+
+			location.href = '/submissions' + (qs ? '?' + qs : '');
 		});
 	}
 
@@ -498,5 +505,20 @@ class mainRanklist {
 		</li>`);
 	}
 
-	globalRender();
+	$('.uoj-username').each(function () {
+		let match;
+		if (match = this.textContent.match(rUsername)) {
+			let uid = parseInt(match[1]);
+			let name = userlist[uid];
+			if (uid >= 50) {
+				name += '<sup style="color: red">*</sup>';
+			}
+			if (uid === dbWinner.query()) {
+				name += '<sup style="color: red">卷王</sup>';
+			}
+			if (name) {
+				this.innerHTML = `<span style="font-weight: normal">${name}</span>`;
+			}
+		}
+	});
 })();
