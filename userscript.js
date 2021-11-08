@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.6
+// @version      1.6.1
 // @author       yhx-12243 & QAQAutoMaton
 // @match        https://ioihw21.duck-ac.cn/
 // @match        https://ioihw21.duck-ac.cn/*
@@ -53,7 +53,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.6';
+const version = '1.6.1';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -270,7 +270,7 @@ class mainRanklist {
 .table-fixed-column.table-hover>tbody>tr.info:hover>td {background-color: #c4e3f3}
 .table-fixed-column.table>thead>tr:first-child>th:first-child,.table-fixed-column.table>tbody>tr>td:first-child {position: sticky; left: 0}
 </style>`).appendTo(document.head),
-			row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th><th rowspan="2" style="min-width: 5em">总分</th><th rowspan="2" style="min-width: 6em">总折算分</th><th rowspan="2" style="min-width: 5em">标准分</th></th>'], row_2 = ['<tr>'];
+			row_1 = ['<tr><th rowspan="2" style="min-width: 3em">#</th><th rowspan="2" style="min-width: 6em">用户名</th><th rowspan="2" style="min-width: 5em">总分</th><th rowspan="2" style="min-width: 5em">总折算分</th><th rowspan="2" style="min-width: 5em">标准分</th></th>'], row_2 = ['<tr>'];
 		this.contests.forEach(contest => {
 			let n = contest.data.problems.length;
 			row_1.push(`<th colspan="${n + 3}" style="border-bottom: none; min-width: ${2 * n + 11.5}em"><a href="/contest/${contest.id}">${contest.name}</a></th>`);
@@ -289,8 +289,10 @@ class mainRanklist {
 			ret += `<td>${row.idx.toString().padStart(2, '0')}</td><td>${getUserLink(row.id, 1500)}</td>`;
 
 			ret += `<td><span class="uoj-score" data-max="${N * 100}" style="color: ${getColOfScore(N ? row.Tscore / N : 0)}">${row.Tscore}</span></td>`;
-			row.points = Math.min(row.points_S60, 80) + Math.min(row.points_F20, 20);
-			ret += `<td>${(row.points * .05).toFixed(2)}</td>`;
+			row.points_S60 = Math.min(row.points_S60, 80);
+			row.points_F20 = Math.min(row.points_F20, 20);
+			row.points = row.points_S60 + row.points_F20;
+			ret += `<td title="${(row.points_S60 * .05).toFixed(2)} + ${(row.points_F20 * .05).toFixed(2)}">${(row.points * .05).toFixed(2)}</td>`;
 
 			let TSscore = this.contests.length ? row.TSscore / this.contests.length : 0;
 			ret += `<td><span class="uoj-score" style="color: ${getColOfScore(TSscore)}">${TSscore.toFixed(2)}</span></td>`;
