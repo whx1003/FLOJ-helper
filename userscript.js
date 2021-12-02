@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         ioihw2021 做题工具
-// @version      1.6.2
+// @version      1.6.3
 // @author       yhx-12243 & QAQAutoMaton
 // @match        *://ioihw21.duck-ac.cn/*
 // @updateURL    http://82.157.186.142/ioihw21_helper.user.js
@@ -52,7 +52,7 @@
 //                                                                                //
 ////////////////////////////////////////////////////////////////////////////////////
 
-const version = '1.6.2';
+const version = '1.6.3';
 
 const userlist = [
 	'张隽恺', '周航锐', '胡杨',   '潘佳奇', '曹越',   '张庭瑞', '彭博',   '齐楚涵', '蔡欣然',   '胡昊',
@@ -149,7 +149,7 @@ function getUserInfo(id) {
 	}
 	id = id.toString().padStart(2, '0');
 	return fetch(`/user/profile/ioi2022_${id}`).then(res => res.text()).then(res => {
-		let motto = strMatch(res, /<h4 class="list-group-item-heading">格言<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s, '<div class="text-danger">&lt;error&gt;</div>');
+		let motto = strMatch(res, /<h4 class="list-group-item-heading">(?:格言|Motto)<\/h4>\s+<p class="list-group-item-text">(.*?)<\/p>/s, '<div class="text-danger">&lt;error&gt;</div>');
 		let count = 0;
 		for (let match of res.matchAll(/"\/problem\/(\d+)"/g)) {
 			let problemId = parseInt(match[1]);
