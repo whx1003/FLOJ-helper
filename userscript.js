@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         FLOJ helper
-// @version      2.0.0
+// @version      2.1.0
 // @author       whx1003
 // @match        *://*.floj.tech/*
 // @updateURL    https://cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
@@ -10,7 +10,7 @@
 // @grant        none
 // ==/UserScript==
 
-const version = '2.0.0';
+const version = '2.1.0';
 
 function getwinner() {
 	return fetch(`/juanlist`).then(res => res.text()).then(res => {
@@ -31,21 +31,30 @@ function getwinner() {
 
 const dbWinner = {
 	async init() {
-		let winners = (await Promise.all([ getwinner() ]))[0];
-
-		
-		localStorage.setItem('juanking', winner);
+		let winners = (await Promise.all([getwinner()]))[0];
+		for (let i = 0; i < 10 && i < winners.length; ++i)
+			localStorage.setItem(`juanking${i}`, winners[i]);
 	},
-	query() {
-		return localStorage.getItem('juanking');
+	query(id) {
+		return localStorage.getItem(`juanking${id}`);
 	},
 };
 
 function replaceUserName() {
-	let match;
-	if (match = this.textContent.match(/([0-9a-zA-Z_]{1,})/g))
-		if (match[0] === dbWinner.query())
-			this.innerHTML += '<sup style="color: red">卷王</sup>'
+	let url = this.getAttribute('href');
+	let matches, name;
+	if (url) {
+		matches = url.match(/\/profile\/([0-9a-zA-Z_]{1,})/g);
+		name = matches[0].substr(9);
+	}
+	else {
+		matches = this.textContent.match(/([0-9a-zA-Z_]{1,})/g);
+		name = matches[0];
+	}
+
+	for (let i = 0; i < 10; ++i)
+		if (name === dbWinner.query(i))
+			this.innerHTML += `<sup style="color: ${getColOfRating(2500 - 100 * i)}">卷王</sup>`
 }
 
 (async () => {
