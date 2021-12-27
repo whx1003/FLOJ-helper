@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         FLOJ helper
-// @version      1.0.0
+// @version      1.1.0
 // @author       whx1003
 // @match        *://*.floj.tech/*
 // @updateURL    https://cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
@@ -10,7 +10,7 @@
 // @grant        none
 // ==/UserScript==
 
-const version = '1.0.0';
+const version = '1.1.0';
 
 const dbWinner = {
 	update(winner) {
@@ -25,9 +25,12 @@ function replaceUserName() {
 	console.log(this.textContent);
 
 	let match;
-	if (match = this.textContent.match(/([0-9a-zA-Z_]{1,})/g))
+	if (match = this.textContent.match(/([0-9a-zA-Z_]{1,})/g)) {
 		if (match[0] === dbWinner.query())
 			this.innerHTML += '<sup style="color: red">卷王</sup>'
+		if (match[0] === 'TQX' && Math.random() < 0.1)
+			this.innerHTML += '<sup style="color: red">并王</sup>'
+	}
 }
 
 function getuserlist() {
