@@ -114,7 +114,7 @@ class Juanlist {
 		$('.navbar .navbar-nav li:last').remove();
 		$('.navbar .navbar-nav').append('<li><a href="/juanlist">卷王榜</a></li>');
 		$('.navbar .navbar-nav').append('<li><a href="/aboutwxh"></a></li>');
-		$('div.uoj-footer>p:last-child').append(` | <a href="https://github.com/whx1003/FLOJ-helper">ioihw-helper ${version}</a>（已修改）`);
+		$('div.uoj-footer>p:last-child').append(` | <a href="https://github.com/whx1003/FLOJ-helper">FLOJ helper ${version}</a>（已修改）`);
 
 		if (location.pathname === '/juanlist') {
 			await Juanlist.main();
