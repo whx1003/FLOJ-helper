@@ -3,8 +3,8 @@
 // @version      1.0.0
 // @author       whx1003
 // @match        *://*.floj.tech/*
-// @updateURL    cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
-// @downloadURL  cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
+// @updateURL    https://cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
+// @downloadURL  https://cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
 // @supportURL   https://github.com/whx1003/FLOJ-helper/issues
 // @homepage     https://github.com/whx1003/FLOJ-helper
 // @grant        none
