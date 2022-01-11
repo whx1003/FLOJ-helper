@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         FLOJ helper
-// @version      2.1.0
+// @version      2.2.0
 // @author       whx1003
 // @match        *://*.floj.tech/*
 // @updateURL    https://cdn.jsdelivr.net/gh/whx1003/FLOJ-helper@FLOJ-helper/userscript.js
@@ -10,7 +10,7 @@
 // @grant        none
 // ==/UserScript==
 
-const version = '2.1.0';
+const version = '2.2.0';
 
 function getwinner() {
 	return fetch(`/juanlist`).then(res => res.text()).then(res => {
@@ -57,7 +57,12 @@ function replaceUserName() {
 			this.innerHTML += `<sup style="color: ${getColOfRating(2500 - 100 * i)}">卷王</sup>`
 }
 
+function replaceDanger() {
+    this.style.backgroundColor = '#fff8d7';
+}
+
 (async () => {
 	dbWinner.init();
 	$('.uoj-username').each(await replaceUserName);
+	$('td.danger').each(await replaceDanger);
 })();
